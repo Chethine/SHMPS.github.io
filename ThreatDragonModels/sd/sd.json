@@ -8,8 +8,19 @@
   },
   "detail": {
     "contributors": [],
-    "diagrams": [],
-    "diagramTop": 0,
+    "diagrams": [
+      {
+        "id": 0,
+        "title": "New SsdTRIDE diagram",
+        "diagramType": "STRIDE",
+        "placeholder": "New STRIDE diagram description",
+        "thumbnail": "./public/content/images/thumbnail.stride.jpg",
+        "version": "2.5.0",
+        "cells": [],
+        "description": "D"
+      }
+    ],
+    "diagramTop": 1,
     "reviewer": "sd",
     "threatTop": 0
   }
