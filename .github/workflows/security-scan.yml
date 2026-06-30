@@ -1,0 +1,64 @@
+name: 🤖 AI Security Agent
+
+on:
+  pull_request:
+    branches: [main, master]
+
+permissions:
+  contents: read
+  security-events: write
+  pull-requests: write
+
+jobs:
+  ai-security-scan:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          pip install anthropic requests playwright docker semgrep
+          playwright install chromium
+
+      - name: Copy agent source files
+        # The agent files live in a .security-agent/ folder in your repo
+        run: echo "Agent files should be committed to .security-agent/"
+
+      - name: Run AI Security Agent (analysis only)
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          cd .security-agent
+          python main.py \
+            --repo-path ${{ github.workspace }} \
+            --target-url http://localhost:8080 \
+            --github-token ${{ secrets.GITHUB_TOKEN }} \
+            --pr-number ${{ github.event.pull_request.number }} \
+            --commit-sha ${{ github.sha }} \
+            --run-url ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }} \
+            --fail-on CRITICAL,HIGH \
+            --skip-pentest
+
+      - name: Upload SARIF
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: .security-agent/security-agent.sarif
+        continue-on-error: true
+
+      - name: Upload findings artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-findings
+          path: .security-agent/security-agent-findings.json

@@ -1,0 +1,14 @@
+FROM python:3.12-slim
+
+# Install only the packages exploit scripts are allowed to use
+RUN pip install requests==2.31.0 --no-cache-dir
+
+# Drop to a non-root user
+RUN useradd -m -u 1000 sandboxuser
+USER sandboxuser
+WORKDIR /sandbox
+
+# Suppress pyc files and shell history
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV HISTFILE=/dev/null
